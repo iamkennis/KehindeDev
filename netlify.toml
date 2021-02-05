@@ -4,19 +4,3 @@
 [build.environment]
   YARN_VERSION = "1.3.2"
   YARN_FLAGS = "--no-ignore-optional"
-[[redirects]]
-from = "/github"
-to = "https://github.com/iamkennis"
-status = 301
-force = true
-[[redirects]]
-from = "/linkedin"
-to = "https://linkedin.com/in/amodu-kehinde"
-status = 301
-force = true
-[[redirects]]
-from = "/twitter"
-to = "https://twitter.com/iamKennis_"
-status = 301
-force = true
-
