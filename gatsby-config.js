@@ -1,7 +1,7 @@
-'use strict'
+'use strict';
 
-const siteConfig = require('./config.js')
-const postCssPlugins = require('./postcss-config.js')
+const siteConfig = require('./config.js');
+const postCssPlugins = require('./postcss-config.js');
 
 module.exports = {
   pathPrefix: siteConfig.pathPrefix,
@@ -9,11 +9,26 @@ module.exports = {
     url: siteConfig.url,
     title: siteConfig.title,
     subtitle: siteConfig.subtitle,
+    copyright: siteConfig.copyright,
     disqusShortname: siteConfig.disqusShortname,
     menu: siteConfig.menu,
     author: siteConfig.author
   },
   plugins: [
+    {
+      resolve: 'gatsby-source-filesystem',
+      options: {
+        path: `${__dirname}/static`,
+        name: 'assets'
+      }
+    },
+    {
+      resolve: 'gatsby-source-filesystem',
+      options: {
+        path: `${__dirname}/static/media`,
+        name: 'media'
+      }
+    },
     {
       resolve: 'gatsby-source-filesystem',
       options: {
@@ -26,13 +41,6 @@ module.exports = {
       options: {
         name: 'css',
         path: `${__dirname}/static/css`
-      }
-    },
-    {
-      resolve: 'gatsby-source-filesystem',
-      options: {
-        name: 'assets',
-        path: `${__dirname}/static`
       }
     },
     {
@@ -49,18 +57,18 @@ module.exports = {
             }
           }
         `,
-        feeds: [
-          {
-            serialize: ({ query: { site, allMarkdownRemark } }) =>
-              allMarkdownRemark.edges.map((edge) => ({
-                ...edge.node.frontmatter,
-                description: edge.node.frontmatter.description,
-                date: edge.node.frontmatter.date,
-                url: site.siteMetadata.site_url + edge.node.fields.slug,
-                guid: site.siteMetadata.site_url + edge.node.fields.slug,
-                custom_elements: [{ 'content:encoded': edge.node.html }]
-              })),
-            query: `
+        feeds: [{
+          serialize: ({ query: { site, allMarkdownRemark } }) => (
+            allMarkdownRemark.edges.map((edge) => ({
+              ...edge.node.frontmatter,
+              description: edge.node.frontmatter.description,
+              date: edge.node.frontmatter.date,
+              url: site.siteMetadata.site_url + edge.node.fields.slug,
+              guid: site.siteMetadata.site_url + edge.node.fields.slug,
+              custom_elements: [{ 'content:encoded': edge.node.html }]
+            }))
+          ),
+          query: `
               {
                 allMarkdownRemark(
                   limit: 1000,
@@ -85,10 +93,9 @@ module.exports = {
                 }
               }
             `,
-            output: '/rss.xml',
-            title: siteConfig.title
-          }
-        ]
+          output: '/rss.xml',
+          title: siteConfig.title
+        }]
       }
     },
     {
@@ -106,15 +113,7 @@ module.exports = {
             resolve: 'gatsby-remark-images',
             options: {
               maxWidth: 960,
-              withWebp: true,
-              ignoreFileExtensions: []
-            }
-          },
-          {
-            resolve: '@pauliescanlon/gatsby-remark-sticky-table',
-            options: {
-              height: 250,
-              backgroundColor: '#ffffff'
+              withWebp: true
             }
           },
           {
@@ -171,12 +170,11 @@ module.exports = {
           }
         `,
         output: '/sitemap.xml',
-        serialize: ({ site, allSitePage }) =>
-          allSitePage.edges.map((edge) => ({
-            url: site.siteMetadata.siteUrl + edge.node.path,
-            changefreq: 'daily',
-            priority: 0.7
-          }))
+        serialize: ({ site, allSitePage }) => allSitePage.edges.map((edge) => ({
+          url: site.siteMetadata.siteUrl + edge.node.path,
+          changefreq: 'daily',
+          priority: 0.7
+        }))
       }
     },
     {
@@ -186,17 +184,47 @@ module.exports = {
         short_name: siteConfig.title,
         start_url: '/',
         background_color: '#FFF',
-        theme_color: '#f74646',
+        theme_color: '#F7A046',
         display: 'standalone',
-        icon: siteConfig.icon
-      }
+        icon: 'static/photo.jpg'
+      },
     },
-    'gatsby-plugin-offline',
+    {
+      resolve: 'gatsby-plugin-offline',
+      options: {
+        workboxConfig: {
+          runtimeCaching: [{
+            // Use cacheFirst since these don't need to be revalidated (same RegExp
+            // and same reason as above)
+            urlPattern: /(\.js$|\.css$|[^:]static\/)/,
+            handler: 'CacheFirst',
+          },
+          {
+            // page-data.json files, static query results and app-data.json
+            // are not content hashed
+            urlPattern: /^https?:.*\/page-data\/.*\.json/,
+            handler: 'StaleWhileRevalidate',
+          },
+          {
+            // Add runtime caching of various other page resources
+            urlPattern: /^https?:.*\.(png|jpg|jpeg|webp|svg|gif|tiff|js|woff|woff2|json|css)$/,
+            handler: 'StaleWhileRevalidate',
+          },
+          {
+            // Google Fonts CSS (doesn't end in .css so we need to specify it)
+            urlPattern: /^https?:\/\/fonts\.googleapis\.com\/css/,
+            handler: 'StaleWhileRevalidate',
+          },
+          ],
+        },
+      },
+    },
     'gatsby-plugin-catch-links',
     'gatsby-plugin-react-helmet',
     {
       resolve: 'gatsby-plugin-sass',
       options: {
+        implementation: require('sass'),
         postCssPlugins: [...postCssPlugins],
         cssLoaderOptions: {
           camelCase: false
@@ -204,13 +232,14 @@ module.exports = {
       }
     },
     {
-      resolve: 'gatsby-plugin-canonical-urls',
+      resolve: '@sentry/gatsby',
       options: {
-        siteUrl: 'https://sheddy.xyz',
-        stripQueryString: true
+        dsn: process.env.SENTRY_DSN,
+        tracesSampleRate: 1
       }
     },
     'gatsby-plugin-flow',
     'gatsby-plugin-optimize-svgs'
   ]
-}
+};
+

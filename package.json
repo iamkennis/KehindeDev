@@ -16,7 +16,7 @@
     "test:coverage": "jest --coverage --config ./jest/jest-config.js",
     "test:watch": "jest --watch --config ./jest/jest-config.js"
   },
-  "repository": "https://github.com/iamkennis/KennisDev",
+  "repository": "https://github.com/iamkennis/KehindeDev",
   "author": "Amodu Kehinde <amodukehindee@gmail.com>",
   "license": "MIT",
   "keywords": [
